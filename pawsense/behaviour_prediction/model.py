@@ -42,8 +42,8 @@ def predict(current_activity, current_activity_start, max_depth):
     return results
 
 current_activity = "Feeding"
-current_activity_start = pd.Timestamp('2025-08-09 15:00:00')
-now = pd.Timestamp('2025-08-09 15:20:00')  # Current real time, e.g. could be now()
+current_activity_start = pd.Timestamp('2025-08-09T15:00:00')
+now = pd.Timestamp('2025-08-09T15:20:00')  # Current real time, e.g. could be now()
 
 df_predictions = predict(current_activity, current_activity_start, max_depth=6)
 

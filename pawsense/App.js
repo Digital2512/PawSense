@@ -75,7 +75,7 @@ const TabButton = ({ icon, isActive, onPress, label }) => (
 export default function SmartDogCollarApp() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [healthData, setHealthData] = useState(generateHealthData());
-  const [currentBehavior, setCurrentBehavior] = useState(behaviors[0]);
+  const [currentBehavior, setCurrentBehavior] = useState('Feeding'); // Start with current activity
   const [currentEmotion, setCurrentEmotion] = useState(emotions[0]);
   const [currentLocation, setCurrentLocation] = useState(locations[0]);
   const [batteryLevel, setBatteryLevel] = useState(85);
@@ -95,7 +95,7 @@ export default function SmartDogCollarApp() {
   useEffect(() => {
     const interval = setInterval(() => {
       setHealthData(generateHealthData());
-      setCurrentBehavior(behaviors[Math.floor(Math.random() * behaviors.length)]);
+      // Don't change current behavior randomly - it should come from API
       setCurrentEmotion(emotions[Math.floor(Math.random() * emotions.length)]);
       setCurrentLocation(locations[Math.floor(Math.random() * locations.length)]);
       setBatteryLevel(prev => Math.max(20, prev - Math.random() * 2));
@@ -116,35 +116,12 @@ export default function SmartDogCollarApp() {
     return () => clearInterval(timeInterval);
   }, []);
 
-  useEffect(() => {
-      (async () => {
-        const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-        if (status !== 'granted') {
-          alert('Enable notifications to get activity reminders!');
-        }
-      })();
-    }, []);
-
-    async function scheduleNextActivityNotification(activityName, startTime) {
-        const triggerTime = new Date(startTime.getTime() - 15 * 60 * 1000); // 15 mins before
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Upcoming Pet Activity 🐾',
-            body: `Your pet’s next activity is ${activityName} in 15 minutes!`,
-            sound: 'default',
-          },
-          trigger: triggerTime, // Date object for absolute time
-        });
-      }
-
-
   // Fetch chain predictions from API
   useEffect(() => {
     const currentActivity = 'Feeding';
-    const currentActivityTimeStart = '2025-08-09 15:53:00';
+    const currentActivityTimeStart = '2025-08-09T15:53:00'; 
 
-    async function fetchChainPredictions(activity) {
+    async function fetchChainPredictions() {
       setIsLoadingPredictions(true);
       try {
         const response = await fetch('https://pawsense-ifaz.onrender.com/predict_chain', {
@@ -153,35 +130,33 @@ export default function SmartDogCollarApp() {
           body: JSON.stringify({ 
             current_activity: currentActivity, 
             last_activity_time: currentActivityTimeStart,
-            max_depth: 6 // Get up to 6 future activities
           })
         });
 
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        
-        const activityName = data.activity;
-        const startTime = new Date(data.start_time);
-        scheduleNextActivityNotification(activityName, startTime);
+        console.log('API Response:', data);
 
-        // Process chain predictions
-        if (data.chain_predictions && Array.isArray(data.chain_predictions)) {
-          const activityStartTime = new Date(currentActivityTimeStart);
+        // Process predictions from your API format
+        if (data.predictions && Array.isArray(data.predictions)) {
+          const currentActivityTime = new Date(currentActivityTimeStart);
+          let cumulativeMinutes = 0;
           
-          const formattedPredictions = data.chain_predictions.map((pred, index) => {
-            // Calculate predicted time based on cumulative duration
-            const predictedTime = new Date(pred.predicted_start_time);
+          const formattedPredictions = data.predictions.map((pred, index) => {
+            cumulativeMinutes += pred.time_to_next_minutes;
+            const predictedTime = new Date(currentActivityTime.getTime() + cumulativeMinutes * 60 * 1000);
             
             return {
-              id: `pred-${index}`, // Add unique ID for React keys
-              label: pred.activity,
+              id: `pred-${index}`,
+              label: pred.next_activity,
               predictedTime: predictedTime,
               probability: pred.probability || 0,
-              depth: index + 1, // Track depth in the chain
-              minutesFromStart: pred.minutes_from_start || 0
+              depth: index + 1,
+              minutesFromStart: cumulativeMinutes,
+              timeToNext: pred.time_to_next_minutes
             };
           });
 
@@ -191,9 +166,9 @@ export default function SmartDogCollarApp() {
           );
 
           setPredictions(sortedPredictions);
+          
         } else {
-          // Fallback to mock data if API doesn't return chain predictions
-          console.warn('Chain predictions not found in API response, using fallback data');
+          console.warn('Predictions not found in API response, using fallback data');
           generateFallbackChainPredictions();
         }
       } catch (error) {
@@ -203,34 +178,8 @@ export default function SmartDogCollarApp() {
         setIsLoadingPredictions(false);
       }
     }
-    
-    // Fallback function to generate mock chain predictions
-    function generateFallbackChainPredictions() {
-      const activities = ['Walking', 'Playing', 'Sleeping', 'Eating', 'Running', 'Sitting'];
-      const startTime = new Date(currentActivityTimeStart);
-      let cumulativeTime = 0;
-      
-      const chainPredictions = activities.slice(0, 6).map((activity, index) => {
-        // Generate realistic durations (15-120 minutes)
-        const duration = Math.floor(Math.random() * 105) + 15;
-        cumulativeTime += duration;
-        
-        const predictedTime = new Date(startTime.getTime() + cumulativeTime * 60 * 1000);
-        
-        return {
-          id: `fallback-${index}`,
-          label: activity,
-          predictedTime: predictedTime,
-          probability: Math.max(0.4, Math.random() * 0.6), // 40-100% probability
-          depth: index + 1,
-          minutesFromStart: cumulativeTime
-        };
-      });
 
-      setPredictions(chainPredictions);
-    }
-
-    fetchChainPredictions(currentActivity);
+    fetchChainPredictions();
   }, []);
 
   const handleTranslate = () => {
@@ -279,7 +228,7 @@ export default function SmartDogCollarApp() {
     } else {
       const hours = Math.floor(minutes / 60);
       const remainingMinutes = minutes % 60;
-      return `in ${hours}h ${remainingMinutes > 0 ? ` ${remainingMinutes}m` : ''}`;
+      return `in ${hours}h${remainingMinutes > 0 ? ` ${remainingMinutes}m` : ''}`;
     }
   };
 
@@ -326,7 +275,7 @@ export default function SmartDogCollarApp() {
           />
         </View>
         <Text style={styles.timestamp}>
-          Last updated: {new Date().toLocaleTimeString()}
+          Last updated: {currentTime.toLocaleTimeString()}
         </Text>
       </Card>
 
@@ -346,6 +295,25 @@ export default function SmartDogCollarApp() {
           />
         </View>
       </Card>
+
+      {/* Next Activity Preview */}
+      {predictions.length > 0 && (
+        <Card style={styles.nextActivityCard}>
+          <Text style={styles.cardTitle}>Next Activity</Text>
+          <View style={styles.nextActivityContent}>
+            <Text style={styles.nextActivityEmoji}>{getBehaviorEmoji(predictions[0].label)}</Text>
+            <View style={styles.nextActivityInfo}>
+              <Text style={styles.nextActivityName}>{predictions[0].label}</Text>
+              <Text style={styles.nextActivityTime}>
+                {formatTimeRemaining(calculateMinutesUntil(predictions[0].predictedTime))}
+              </Text>
+              <Text style={styles.nextActivityConfidence}>
+                {Math.round(predictions[0].probability * 100)}% confident
+              </Text>
+            </View>
+          </View>
+        </Card>
+      )}
     </ScrollView>
   );
 
@@ -509,6 +477,11 @@ export default function SmartDogCollarApp() {
                         <Text style={styles.predictionActivity}>{pred.label}</Text>
                         <Text style={styles.predictionTime}>Expected: {timeString}</Text>
                         <Text style={styles.predictionDepth}>Chain depth: {pred.depth}</Text>
+                        {pred.timeToNext && (
+                          <Text style={styles.predictionDuration}>
+                            Duration: ~{pred.timeToNext} min
+                          </Text>
+                        )}
                       </View>
                     </View>
                     <View style={styles.predictionRight}>
@@ -906,6 +879,38 @@ const styles = StyleSheet.create({
   safeBadge: {
     borderWidth: 1,
   },
+  // New styles for next activity card
+  nextActivityCard: {
+    backgroundColor: '#FEF7FF',
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+  },
+  nextActivityContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nextActivityEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  nextActivityInfo: {
+    flex: 1,
+  },
+  nextActivityName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#7C3AED',
+  },
+  nextActivityTime: {
+    fontSize: 14,
+    color: '#8B5CF6',
+    marginTop: 2,
+  },
+  nextActivityConfidence: {
+    fontSize: 12,
+    color: '#A855F7',
+    marginTop: 2,
+  },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1153,6 +1158,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#9CA3AF',
     marginTop: 1,
+  },
+  predictionDuration: {
+    fontSize: 9,
+    color: '#A855F7',
+    marginTop: 1,
+    fontWeight: '500',
   },
   predictionRight: {
     alignItems: 'flex-end',
