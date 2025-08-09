@@ -22,7 +22,7 @@ def predict():
 # Returns data fromt he client as a JSON back to caller
 @app.route("/data", methods=["GET"])
 def get_data():
-    client_data = retrieve_client_data
+    client_data = retrieve_client_data()
     return jsonify(client_data)
 
 if __name__ == '__main__':
