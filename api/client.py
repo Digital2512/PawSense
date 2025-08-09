@@ -1,63 +1,77 @@
-from flask import Flask, request, jsonify, render_template_string
+# from flask import Flask, request, jsonify, render_template_string
 import random
 from datetime import datetime, timezone
 
-mode = "random"
-
 # --- Available values for manual selection ---
 possible_values = {
-    "bark_pitch": ["Low", "Medium", "High"],
-    "bark_volume": ["Quiet", "Moderate", "Loud"],
-    "bark_duration": ["Short", "Medium", "Long"],
-    "location": ["Park", "Home", "Yard", "Vet", "Beach", "Unknown"],
-    "tail_wag_frequency": ["Slow", "Medium", "Fast"],
-    "tail_wag_amplitude": ["Low", "Medium", "High"],
-    "heart_rate_bpm": list(range(60, 181)),
-    "time_of_day": ["Morning", "Afternoon", "Evening", "Night"],
-    "body_position": ["Sitting", "Standing", "Lying Down", "Crouching"],
-    "head_tilt": ["Left", "Right", "None"]
+    {
+        "Neutral": {
+            "size": ["Small", "Medium", "Large"],
+            "age_group": ["Puppy", "Adult", "Senior"],
+            "heart_rate": ["Small", "Medium", "Large"],
+            "tail_wag_speed": list(range(60, 181, 0.1)),
+            "tail_wag_amplitude": list(range(30, 60)),
+            "tail_position": ["Neutral"],
+            "tail_stiffness": ["Loose"],
+            "wag_direction": ["Neutral", "Right_Slight"],
+            "bark_pitch": ["Small", "Medium", "Large"],
+            "bark_loudness": ["Small", "Medium", "Large"],
+            "bark_duration": list(range(0, 0.5, 0.01)),
+            "posture": ["Relaxed", "Standing", "Lying"],
+            "head_tilt": ["None"],
+            "context": ["Home", "Rest"]
+        },
+        "Excited": {
+            #code here
+        },
+        "Sad": {
+            #code here
+        }
+        # Continue code here
+
+    }
 }
 
-# HTML UI for manual/random selection
-html_form = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Fake Smart Collar</title>
-</head>
-<body>
-    <h2>Fake Smart Collar - Data Generator</h2>
-    <form action="/data" method="post">
-        {% for var, values in possible_values.items() %}
-            <label>{{ var }}:</label>
-            {% if values|length > 10 %}
-                <select name="{{ var }}">
-                    {% for v in values %}
-                        <option value="{{ v }}">{{ v }}</option>
-                    {% endfor %}
-                </select>
-            {% else %}
-                <select name="{{ var }}">
-                    <option value="random">Random</option>
-                    {% for v in values %}
-                        <option value="{{ v }}">{{ v }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-            <br><br>
-        {% endfor %}
-        <button type="submit" name="mode" value="manual">Submit</button>
-    </form>
-    <br>
-    <form action="/data" method="post">
-        <button type="submit" name="mode" value="random">Generate Completely Random Data</button>
-    </form>
-</body>
-</html>
-"""
+# # HTML UI for manual/random selection
+# html_form = """
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Fake Smart Collar</title>
+# </head>
+# <body>
+#     <h2>Fake Smart Collar - Data Generator</h2>
+#     <form action="/data" method="post">
+#         {% for var, values in possible_values.items() %}
+#             <label>{{ var }}:</label>
+#             {% if values|length > 10 %}
+#                 <select name="{{ var }}">
+#                     {% for v in values %}
+#                         <option value="{{ v }}">{{ v }}</option>
+#                     {% endfor %}
+#                 </select>
+#             {% else %}
+#                 <select name="{{ var }}">
+#                     <option value="random">Random</option>
+#                     {% for v in values %}
+#                         <option value="{{ v }}">{{ v }}</option>
+#                     {% endfor %}
+#                 </select>
+#             {% endif %}
+#             <br><br>
+#         {% endfor %}
+#         <button type="submit" name="mode" value="manual">Submit</button>
+#     </form>
+#     <br>
+#     <form action="/data" method="post">
+#         <button type="submit" name="mode" value="random">Generate Completely Random Data</button>
+#     </form>
+# </body>
+# </html>
+# """
 
 # Helper: generate random dataset
-def generate_random_data():
+def retrieve_client_data():
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "bark_pitch": random.choice(possible_values["bark_pitch"]),
