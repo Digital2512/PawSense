@@ -32,44 +32,6 @@ possible_values = {
     }
 }
 
-# # HTML UI for manual/random selection
-# html_form = """
-# <!DOCTYPE html>
-# <html>
-# <head>
-#     <title>Fake Smart Collar</title>
-# </head>
-# <body>
-#     <h2>Fake Smart Collar - Data Generator</h2>
-#     <form action="/data" method="post">
-#         {% for var, values in possible_values.items() %}
-#             <label>{{ var }}:</label>
-#             {% if values|length > 10 %}
-#                 <select name="{{ var }}">
-#                     {% for v in values %}
-#                         <option value="{{ v }}">{{ v }}</option>
-#                     {% endfor %}
-#                 </select>
-#             {% else %}
-#                 <select name="{{ var }}">
-#                     <option value="random">Random</option>
-#                     {% for v in values %}
-#                         <option value="{{ v }}">{{ v }}</option>
-#                     {% endfor %}
-#                 </select>
-#             {% endif %}
-#             <br><br>
-#         {% endfor %}
-#         <button type="submit" name="mode" value="manual">Submit</button>
-#     </form>
-#     <br>
-#     <form action="/data" method="post">
-#         <button type="submit" name="mode" value="random">Generate Completely Random Data</button>
-#     </form>
-# </body>
-# </html>
-# """
-
 # Helper: generate random dataset
 def retrieve_client_data():
     return {
