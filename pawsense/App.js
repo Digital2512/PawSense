@@ -166,7 +166,7 @@ export default function SmartDogCollarApp() {
         const activityName = data.activity;
         const startTime = new Date(data.start_time);
         scheduleNextActivityNotification(activityName, startTime);
-        
+
         // Process chain predictions
         if (data.chain_predictions && Array.isArray(data.chain_predictions)) {
           const activityStartTime = new Date(currentActivityTimeStart);
@@ -191,7 +191,6 @@ export default function SmartDogCollarApp() {
           );
 
           setPredictions(sortedPredictions);
-          
         } else {
           // Fallback to mock data if API doesn't return chain predictions
           console.warn('Chain predictions not found in API response, using fallback data');

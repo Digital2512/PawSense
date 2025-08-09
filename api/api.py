@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/predict', methods=["POST"])
-def predict():
+@app.route('/predict_chain', methods=["POST"])
+def predict_chain():
     data = request.json
     current_activity = data.get('current_activity')
     last_activity_time_str = data.get('last_activity_time')
@@ -26,12 +26,41 @@ def predict():
     except Exception:
         return jsonify({'error': 'Invalid last_activity_time format'}), 400
     
-    predictions = predict_chain(current_activity)
-
-    top_3 = predictions[:3]
+    predictions = predict(current_activity, last_activity_time_str)
 
     result = []
-    for activity, time_to_next, prob in top_3:
+    for activity, time_to_next, prob in predictions[1:]:
+        result.append({
+            'next_activity': activity,
+            'time_to_next_minutes': time_to_next,
+            'probability': prob
+        })
+
+    return jsonify({'predictions': result})
+
+@app.route('/predict_next', methods=["POST"])
+def predict_next():
+    data = request.json
+    current_activity = data.get('current_activity')
+    last_activity_time_str = data.get('last_activity_time')
+
+    if not current_activity:
+        return jsonify({'error': 'No Current Activity Provided'})
+    
+    if not last_activity_time_str:
+        return jsonify({'error': 'No Last Activity Time Provided'})
+    
+    try:
+        last_activity_time = datetime.fromisoformat(last_activity_time_str)
+        now = datetime.now(timezone.utc)
+        minutes_since_last = (now - last_activity_time).total_seconds()/60
+    except Exception:
+        return jsonify({'error': 'Invalid last_activity_time format'}), 400
+    
+    predictions = predict(current_activity)
+
+    result = []
+    for activity, time_to_next, prob in predictions[1:]:
         result.append({
             'next_activity': activity,
             'time_to_next_minutes': time_to_next,
