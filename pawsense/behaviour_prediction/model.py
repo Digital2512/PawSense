@@ -22,7 +22,13 @@ transition_stats['probability'] = transition_stats['count'] / total_counts
 
 print(transition_stats)
 
-def predict(current_activity, current_activity_start, max_depth):
+def predict_chain(current_activity, current_activity_start, max_depth=2):
+    """
+    Predicts chains of activities up to max_depth starting from current_activity.
+
+    Returns a list of tuples:
+    [(activity_1, start_time_1), (activity_2, start_time_2), ...]
+    """
     results = []
 
     def helper(activity, start_time, depth):
@@ -45,7 +51,7 @@ current_activity = "Feeding"
 current_activity_start = pd.Timestamp('2025-08-09 15:00:00')
 now = pd.Timestamp('2025-08-09 15:20:00')  # Current real time, e.g. could be now()
 
-df_predictions = predict(current_activity, current_activity_start, max_depth=6)
+df_predictions = predict_chain(current_activity, current_activity_start, max_depth=6)
 
 if df_predictions:
     for activity, start_time in df_predictions:
