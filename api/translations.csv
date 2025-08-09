@@ -1,0 +1,4 @@
+time, translation, confidence
+'2 mins ago', 'I want to go outside!', 0.95
+'5 min ago', 'Someone is at the door', 0.90
+'9 mins ago', 'I am happy to see you!', 0.85

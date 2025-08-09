@@ -1,5 +1,5 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
   StyleSheet,
   Text,
@@ -94,7 +94,6 @@ export default function SmartDogCollarApp() {
     const interval = setInterval(() => {
       setHealthData(generateHealthData());
       setCurrentBehavior(behaviors[Math.floor(Math.random() * behaviors.length)]);
-      setCurrentEmotion(emotions[Math.floor(Math.random() * emotions.length)]);
       setCurrentLocation(locations[Math.floor(Math.random() * locations.length)]);
       setBatteryLevel(prev => Math.max(20, prev - Math.random() * 2));
     }, 3000);
@@ -129,6 +128,25 @@ export default function SmartDogCollarApp() {
     return emojiMap[behavior] || '🐕';
   };
 
+  useEffect(() => {
+    async function fetchEmotion() {
+      try {
+        const response = await fetch('http://127.0.1:5000//predict_emotion', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        setCurrentEmotion(data.predicted_emotion);
+      } catch (error) {
+        console.error('Error fetching emotion:', error);
+      }
+    }
+    fetchEmotion();
+  }, []);
   
   useEffect(() => {
     async function fetchPrediction() {
@@ -169,6 +187,43 @@ export default function SmartDogCollarApp() {
     }
 
     fetchPrediction();
+  }, []);
+
+  useEffect(() => {
+    async function fetchTranslations() {
+      try {
+        const response = await fetch('http://127.0.1:5000/predict_emotion', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        setRecentBarks(prev => [
+          ...prev,
+          {
+            time: '2 min ago',
+            translation: data.bark_translation,
+            confidence: Math.floor(Math.random() * 100) + 1 // Random confidence for demo
+          },
+          {
+            time: '5 min ago',
+            translation: data.bark_translation1,
+            confidence: 92
+          },
+          {
+            time: '12 min ago',
+            translation: data.bark_translation2,
+            confidence: 88
+          }
+        ]);
+      } catch (error) {
+        console.error('Error fetching translations:', error);
+      }
+    }
+    fetchTranslations();
   }, []);
 
   console.log('Predictions: ', predictions)

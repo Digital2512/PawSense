@@ -25,7 +25,7 @@ def predict_emotion():
             new_data[col] = label_encoders[col].transform(new_data[col])
         print("Encoded data for prediction:", new_data)
 
-        new_data.drop(columns=['context'], inplace=True, errors='ignore')
+        new_data.drop
 
         # Predict
         predicted_label_num = model.predict(new_data)[0]
