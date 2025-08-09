@@ -1,6 +1,11 @@
+import os
 import pandas as pd
 
-df = pd.read_csv("C:\\Users\\ValerieAnnabella\\Downloads\\GitHub\\PawSense\\pawsense\\behaviour_prediction\\pet_activity_simulation.csv")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+csv_path = os.path.join(BASE_DIR, "pet_activity_simulation.csv")
+
+df = pd.read_csv(csv_path)
 df['start_time'] = pd.to_datetime(df['start_time'])
 df = df.sort_values('start_time')
 
