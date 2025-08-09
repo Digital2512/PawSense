@@ -136,7 +136,7 @@ export default function SmartDogCollarApp() {
 
   async function fetchPrediction(activity) {
     try {
-      const response = await fetch('http://172.16.37.208:5000/predict', {
+      const response = await fetch('https://pawsense-ifaz.onrender.com/predict', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ current_activity: currentActivity })
@@ -164,6 +164,46 @@ export default function SmartDogCollarApp() {
     }
   }
 
+  // Isaac's Testing - Start
+  // async function fetchClientData() {
+  //   try {
+  //     const response = await fetch('http://172.20.10.3:5000/data', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     // body: JSON.stringify({ current_activity: currentActivity })
+  //   });
+
+
+
+  //     if (!response.ok) {
+  //       throw new Error('Network response was not ok');
+  //     }
+
+  //     const data = await response.json();
+
+  //     const formattedClientData = [
+  //       {
+  //         size:
+  //         ageGroup:
+  //         heartRate:
+  //         tailWagSpeed:
+  //         tailWagAmplitude
+  //         tailPosition:
+  //         tailStiffness
+  //         // label: 'Next Activity',
+  //         // time: data.next_activity,
+  //         // timeInfo: `in ${Math.round(data.time_to_next_minutes)} minutes`,
+  //       },
+  //     ];
+
+  //     setPredictions(formattedClientData);
+  //   } catch (error) {
+  //     console.error('Error fetching client data:', error);
+  //   }
+  // }
+
+  // Isaac's Testing End
+  fetchClientData();
   fetchPrediction(currentActivity);
 }, []);
 
