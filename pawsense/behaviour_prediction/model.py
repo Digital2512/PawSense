@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv("C:\\Users\\ValerieAnnabella\\Downloads\\GitHub\\PawSense\\smart-collar-for-pets\\behaviour_prediction\\pet_activity_simulation.csv")
+df = pd.read_csv("C:\\Users\\ValerieAnnabella\\Downloads\\GitHub\\PawSense\\pawsense\\behaviour_prediction\\pet_activity_simulation.csv")
 df['start_time'] = pd.to_datetime(df['start_time'])
 df = df.sort_values('start_time')
 
