@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 from behaviour_prediction.model import predict_next_activity
-from fake_smart_collar_client import generate_random_data, html_form, possible_values, mode
+from client import generate_random_data, html_form, possible_values, mode
 
 app = Flask(__name__)
 CORS(app)
