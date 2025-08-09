@@ -89,6 +89,7 @@ export default function SmartDogCollarApp() {
     { time: '12 min ago', translation: 'I am happy to see you!', confidence: 95 }
   ]);
   const [predictions, setPredictions] = useState([]);
+  const [clientData, setClientData] = useState([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -173,7 +174,31 @@ export default function SmartDogCollarApp() {
     fetchPrediction();
   }, []);
 
+  useEffect(() => {
+    async function fetchClientData() {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/data', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        setClientData(data);
+      } catch (error) {
+        console.error('Error fetching client data:', error);
+      }
+    }
+    
+    fetchClientData();
+  }, []);
+
   // console.log('Predictions: ', predictions)
+  // console.log('Predictions: ', clientData)
 
   const renderDashboard = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
@@ -181,11 +206,11 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Current Status</Text>
         <View style={styles.statusGrid}>
           <View style={[styles.statusItem, { backgroundColor: '#EFF6FF' }]}>
-            <Text style={[styles.statusValue, { color: '#2563EB' }]}>{healthData.heartRate}</Text>
+            <Text style={[styles.statusValue, { color: '#2563EB' }]}>{clientData.heart_rate}</Text>
             <Text style={[styles.statusLabel, { color: '#2563EB' }]}>BPM</Text>
           </View>
           <View style={[styles.statusItem, { backgroundColor: '#F0FDF4' }]}>
-            <Text style={[styles.statusValue, { color: '#16A34A' }]}>{healthData.temperature}°F</Text>
+            <Text style={[styles.statusValue, { color: '#16A34A' }]}>{clientData.temperature}°F</Text>
             <Text style={[styles.statusLabel, { color: '#16A34A' }]}>Temperature</Text>
           </View>
         </View>
@@ -200,7 +225,7 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Behavior & Emotion</Text>
         <View style={styles.behaviorContent}>
           <View style={styles.behaviorInfo}>
-            <Text style={styles.behaviorText}>{currentBehavior}</Text>
+            <Text style={styles.behaviorText}>{clientData.activity}</Text>
             <Text style={styles.behaviorSubtext}>Current Activity</Text>
           </View>
           <Badge 
@@ -218,9 +243,9 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Location</Text>
         <View style={styles.locationContent}>
           <View style={styles.locationInfo}>
-            <Text style={styles.locationName}>{currentLocation.name}</Text>
+            <Text style={styles.locationName}>{clientData.context}</Text>
             <Text style={styles.locationCoords}>
-              {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+              {clientData.latitude}, {clientData.longitude}
             </Text>
           </View>
           <Badge 
@@ -243,7 +268,7 @@ export default function SmartDogCollarApp() {
               <Ionicons name="heart" size={16} color="#EF4444" />
               <Text style={styles.vitalSignLabel}>Heart Rate</Text>
             </View>
-            <Text style={[styles.vitalSignValue, { color: '#EF4444' }]}>{healthData.heartRate}</Text>
+            <Text style={[styles.vitalSignValue, { color: '#EF4444' }]}>{clientData.heart_rate}</Text>
             <Text style={[styles.vitalSignUnit, { color: '#EF4444' }]}>BPM (Normal)</Text>
           </View>
           <View style={[styles.vitalSignCard, { backgroundColor: '#FFF7ED' }]}>
@@ -251,7 +276,7 @@ export default function SmartDogCollarApp() {
               <Ionicons name="thermometer" size={16} color="#F97316" />
               <Text style={styles.vitalSignLabel}>Temperature</Text>
             </View>
-            <Text style={[styles.vitalSignValue, { color: '#F97316' }]}>{healthData.temperature}°F</Text>
+            <Text style={[styles.vitalSignValue, { color: '#F97316' }]}>{clientData.temperature}°F</Text>
             <Text style={[styles.vitalSignUnit, { color: '#F97316' }]}>Normal Range</Text>
           </View>
         </View>
@@ -262,17 +287,17 @@ export default function SmartDogCollarApp() {
         <View style={styles.activityMetric}>
           <View style={styles.metricHeader}>
             <Text style={styles.metricLabel}>Steps Today</Text>
-            <Text style={styles.metricValue}>{healthData.steps.toLocaleString()}</Text>
+            <Text style={styles.metricValue}>{clientData.steps}</Text>
           </View>
-          <ProgressBar progress={(healthData.steps / 15000) * 100} color="#10B981" />
+          <ProgressBar progress={(clientData.steps / 15000) * 100} color="#10B981" />
           <Text style={styles.metricGoal}>Goal: 15,000 steps</Text>
         </View>
         <View style={styles.activityMetric}>
           <View style={styles.metricHeader}>
             <Text style={styles.metricLabel}>Calories Burned</Text>
-            <Text style={styles.metricValue}>{healthData.calories}</Text>
+            <Text style={styles.metricValue}>{clientData.calories}</Text>
           </View>
-          <ProgressBar progress={(healthData.calories / 600) * 100} color="#F59E0B" />
+          <ProgressBar progress={(clientData.calories / 600) * 100} color="#F59E0B" />
           <Text style={styles.metricGoal}>Goal: 600 calories</Text>
         </View>
       </Card>
@@ -297,9 +322,9 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Live Location</Text>
         <View style={styles.mapPlaceholder}>
           <Ionicons name="location" size={48} color="#EF4444" />
-          <Text style={styles.mapLocationName}>{currentLocation.name}</Text>
+          <Text style={styles.mapLocationName}>{clientData.context}</Text>
           <Text style={styles.mapLocationCoords}>
-            {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+            {clientData.latitude}, {clientData.longitude}
           </Text>
           <Badge 
             text="In Safe Zone" 
