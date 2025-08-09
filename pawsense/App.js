@@ -102,6 +102,8 @@ export default function SmartDogCollarApp() {
     return () => clearInterval(interval);
   }, []);
 
+  // 
+
   const handleTranslate = () => {
     if (!translatorInput.trim()) {
       Alert.alert('Please enter a message');
@@ -167,11 +169,11 @@ export default function SmartDogCollarApp() {
         console.error('Error fetching prediction:', error);
       }
     }
-
+    
     fetchPrediction();
   }, []);
 
-  console.log('Predictions: ', predictions)
+  // console.log('Predictions: ', predictions)
 
   const renderDashboard = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
@@ -278,8 +280,12 @@ export default function SmartDogCollarApp() {
       <Card>
         <Text style={styles.cardTitle}>Health Alerts</Text>
         <View style={styles.healthAlert}>
-          <Text style={styles.healthAlertTitle}>All Good! 🎉</Text>
-          <Text style={styles.healthAlertText}>No health alerts at this time</Text>
+          <Text style={[styles.healthAlertTitle, { color: 'red', fontWeight: 'bold' }]}>
+            ⚠️ Health Alert!
+          </Text>
+          <Text style={styles.healthAlertText}>
+            Max has missed his medicine dose today.
+          </Text>
         </View>
       </Card>
     </ScrollView>
@@ -391,22 +397,6 @@ export default function SmartDogCollarApp() {
         ) : (
           <Text>Loading predictions...</Text>
         )}
-      </Card>
-
-
-
-
-      <Card>
-        <Text style={styles.cardTitle}>Behavior Patterns</Text>
-        {behaviors.slice(0, 4).map((behavior, index) => (
-          <View key={index} style={styles.patternItem}>
-            <Text style={styles.patternLabel}>{behavior}</Text>
-            <View style={styles.patternProgress}>
-              <ProgressBar progress={Math.random() * 100} color="#8B5CF6" height={6} />
-              <Text style={styles.patternPercentage}>{Math.floor(Math.random() * 100)}%</Text>
-            </View>
-          </View>
-        ))}
       </Card>
     </ScrollView>
   );
