@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime, timezone
 from pawsense.behaviour_prediction.model import predict_chain
+import os
 
 app = Flask(__name__)
 CORS(app)
