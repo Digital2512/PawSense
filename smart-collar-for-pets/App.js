@@ -87,6 +87,7 @@ export default function SmartDogCollarApp() {
     { time: '5 min ago', translation: 'Someone is at the door', confidence: 88 },
     { time: '12 min ago', translation: 'I am happy to see you!', confidence: 95 }
   ]);
+  const [predictions, setPredictions] = useState([]);
 
   // Simulate real-time updates
   useEffect(() => {
@@ -127,6 +128,45 @@ export default function SmartDogCollarApp() {
     };
     return emojiMap[behavior] || '🐕';
   };
+
+  
+  useEffect(() => {
+  // DEMO: Change this to any activity from your list
+  const currentActivity = 'Feeding';
+
+  async function fetchPrediction(activity) {
+    try {
+      const response = await fetch('http://172.16.37.208:5000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_activity: currentActivity })
+    });
+
+
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+
+      const formattedPredictions = [
+        {
+          label: 'Next Activity',
+          time: data.next_activity,
+          timeInfo: `in ${Math.round(data.time_to_next_minutes)} minutes`,
+        },
+      ];
+
+      setPredictions(formattedPredictions);
+    } catch (error) {
+      console.error('Error fetching prediction:', error);
+    }
+  }
+
+  fetchPrediction(currentActivity);
+}, []);
+
 
   const renderDashboard = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
@@ -307,21 +347,22 @@ export default function SmartDogCollarApp() {
         </View>
       </Card>
 
+      {/* Activity */}
       <Card>
-        <Text style={styles.cardTitle}>Activity Predictions</Text>
-        <View style={styles.predictionItem}>
-          <Text style={styles.predictionLabel}>Next Walk Time</Text>
-          <Badge text="3:30 PM (in 2 hours)" style={styles.predictionBadge} />
-        </View>
-        <View style={styles.predictionItem}>
-          <Text style={styles.predictionLabel}>Meal Time</Text>
-          <Badge text="6:00 PM (in 5 hours)" style={styles.predictionBadge} />
-        </View>
-        <View style={styles.predictionItem}>
-          <Text style={styles.predictionLabel}>Play Session</Text>
-          <Badge text="4:15 PM (in 3 hours)" style={styles.predictionBadge} />
-        </View>
-      </Card>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
+        Activity Predictions
+      </Text>
+      {predictions.length > 0 ? (
+        predictions.map((pred, idx) => (
+          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ flex: 1, fontWeight: '600' }}>{pred.label}</Text>
+            <Badge text={`${pred.time} (${pred.timeInfo})`} />
+          </View>
+        ))
+      ) : (
+        <Text>Loading predictions...</Text>
+      )}
+    </Card>
 
       <Card>
         <Text style={styles.cardTitle}>Behavior Patterns</Text>
