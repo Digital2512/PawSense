@@ -22,39 +22,18 @@ transition_stats['probability'] = transition_stats['count'] / total_counts
 
 print(transition_stats)
 
-def predict_chain(current_activity, current_activity_start, max_depth=2):
-    """
-    Predicts chains of activities up to max_depth starting from current_activity.
+def predict_next_activity(current_activity):
+    subset = transition_stats[transition_stats['activity'] == current_activity]
+    if subset.empty:
+        return None, None
 
-    Returns a list of tuples:
-    [(activity_1, start_time_1), (activity_2, start_time_2), ...]
-    """
-    results = []
-
-    def helper(activity, start_time, depth):
-        if depth > max_depth:
-            return
-        subset = transition_stats[transition_stats['activity'] == activity]
-        if subset.empty:
-            return
-        for _, row in subset.iterrows():
-            next_act = row['next_activity']
-            duration = row['time_to_next_activity']
-            next_start = start_time + pd.to_timedelta(duration, unit='m')
-            results.append((next_act, next_start))
-            helper(next_act, next_start, depth + 1)
-
-    helper(current_activity, current_activity_start, 1)
-    return results
+    prediction = subset.loc[subset['probability'].idxmax()]
+    return prediction['next_activity'], prediction['time_to_next_activity']
 
 current_activity = "Feeding"
-current_activity_start = pd.Timestamp('2025-08-09 15:00:00')
-now = pd.Timestamp('2025-08-09 15:20:00')  # Current real time, e.g. could be now()
+next_activity, time_to_next = predict_next_activity(current_activity)
 
-df_predictions = predict_chain(current_activity, current_activity_start, max_depth=6)
-
-if df_predictions:
-    for activity, start_time in df_predictions:
-        print(f"{activity} at {start_time}")
+if next_activity:
+    print(f"Alert: Your dog is likely to {next_activity} in about {int(time_to_next)} minutes!")
 else:
-    print("No predictions available.")
+    print("No prediction available")

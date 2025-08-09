@@ -88,8 +88,6 @@ export default function SmartDogCollarApp() {
     { time: '12 min ago', translation: 'I am happy to see you!', confidence: 95 }
   ]);
   const [predictions, setPredictions] = useState([]);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isLoadingPredictions, setIsLoadingPredictions] = useState(true);
 
   // Simulate real-time updates
   useEffect(() => {
@@ -99,139 +97,9 @@ export default function SmartDogCollarApp() {
       setCurrentEmotion(emotions[Math.floor(Math.random() * emotions.length)]);
       setCurrentLocation(locations[Math.floor(Math.random() * locations.length)]);
       setBatteryLevel(prev => Math.max(20, prev - Math.random() * 2));
-      
-      // Update current time for real-time calculations
-      setCurrentTime(new Date());
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  // Real-time clock update every second
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timeInterval);
-  }, []);
-
-  useEffect(() => {
-      (async () => {
-        const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-        if (status !== 'granted') {
-          alert('Enable notifications to get activity reminders!');
-        }
-      })();
-    }, []);
-
-    async function scheduleNextActivityNotification(activityName, startTime) {
-        const triggerTime = new Date(startTime.getTime() - 15 * 60 * 1000); // 15 mins before
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Upcoming Pet Activity 🐾',
-            body: `Your pet’s next activity is ${activityName} in 15 minutes!`,
-            sound: 'default',
-          },
-          trigger: triggerTime, // Date object for absolute time
-        });
-      }
-
-
-  // Fetch chain predictions from API
-  useEffect(() => {
-    const currentActivity = 'Feeding';
-    const currentActivityTimeStart = '2025-08-09 15:53:00';
-
-    async function fetchChainPredictions(activity) {
-      setIsLoadingPredictions(true);
-      try {
-        const response = await fetch('https://pawsense-ifaz.onrender.com/predict_chain', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            current_activity: currentActivity, 
-            last_activity_time: currentActivityTimeStart,
-            max_depth: 6 // Get up to 6 future activities
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        
-        const data = await response.json();
-        
-        const activityName = data.activity;
-        const startTime = new Date(data.start_time);
-        scheduleNextActivityNotification(activityName, startTime);
-        
-        // Process chain predictions
-        if (data.chain_predictions && Array.isArray(data.chain_predictions)) {
-          const activityStartTime = new Date(currentActivityTimeStart);
-          
-          const formattedPredictions = data.chain_predictions.map((pred, index) => {
-            // Calculate predicted time based on cumulative duration
-            const predictedTime = new Date(pred.predicted_start_time);
-            
-            return {
-              id: `pred-${index}`, // Add unique ID for React keys
-              label: pred.activity,
-              predictedTime: predictedTime,
-              probability: pred.probability || 0,
-              depth: index + 1, // Track depth in the chain
-              minutesFromStart: pred.minutes_from_start || 0
-            };
-          });
-
-          // Sort by predicted time (closest first)
-          const sortedPredictions = formattedPredictions.sort(
-            (a, b) => a.predictedTime.getTime() - b.predictedTime.getTime()
-          );
-
-          setPredictions(sortedPredictions);
-          
-        } else {
-          // Fallback to mock data if API doesn't return chain predictions
-          console.warn('Chain predictions not found in API response, using fallback data');
-          generateFallbackChainPredictions();
-        }
-      } catch (error) {
-        console.error('Error fetching chain predictions:', error);
-        generateFallbackChainPredictions();
-      } finally {
-        setIsLoadingPredictions(false);
-      }
-    }
-    
-    // Fallback function to generate mock chain predictions
-    function generateFallbackChainPredictions() {
-      const activities = ['Walking', 'Playing', 'Sleeping', 'Eating', 'Running', 'Sitting'];
-      const startTime = new Date(currentActivityTimeStart);
-      let cumulativeTime = 0;
-      
-      const chainPredictions = activities.slice(0, 6).map((activity, index) => {
-        // Generate realistic durations (15-120 minutes)
-        const duration = Math.floor(Math.random() * 105) + 15;
-        cumulativeTime += duration;
-        
-        const predictedTime = new Date(startTime.getTime() + cumulativeTime * 60 * 1000);
-        
-        return {
-          id: `fallback-${index}`,
-          label: activity,
-          predictedTime: predictedTime,
-          probability: Math.max(0.4, Math.random() * 0.6), // 40-100% probability
-          depth: index + 1,
-          minutesFromStart: cumulativeTime
-        };
-      });
-
-      setPredictions(chainPredictions);
-    }
-
-    fetchChainPredictions(currentActivity);
   }, []);
 
   const handleTranslate = () => {
@@ -256,41 +124,49 @@ export default function SmartDogCollarApp() {
       'Walking': '🚶',
       'Running': '🏃',
       'Eating': '🍽️',
-      'Sitting': '🐕',
-      'Feeding': '🍽️'
+      'Sitting': '🐕'
     };
     return emojiMap[behavior] || '🐕';
   };
 
-  // Helper function to calculate minutes until predicted time
-  const calculateMinutesUntil = (predictedTime) => {
-    const diffInMs = predictedTime.getTime() - currentTime.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    return diffInMinutes;
-  };
+  
+  useEffect(() => {
+  // DEMO: Change this to any activity from your list
+  const currentActivity = 'Feeding';
 
-  // Helper function to format time remaining
-  const formatTimeRemaining = (minutes) => {
-    if (minutes < 0) {
-      return `${Math.abs(minutes)} min ago`;
-    } else if (minutes === 0) {
-      return 'Now';
-    } else if (minutes < 60) {
-      return `in ${minutes} min`;
-    } else {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `in ${hours}h ${remainingMinutes > 0 ? ` ${remainingMinutes}m` : ''}`;
+  async function fetchPrediction(activity) {
+    try {
+      const response = await fetch('http://172.16.37.208:5000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_activity: currentActivity })
+    });
+
+
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+
+      const formattedPredictions = [
+        {
+          label: 'Next Activity',
+          time: data.next_activity,
+          timeInfo: `in ${Math.round(data.time_to_next_minutes)} minutes`,
+        },
+      ];
+
+      setPredictions(formattedPredictions);
+    } catch (error) {
+      console.error('Error fetching prediction:', error);
     }
-  };
+  }
 
-  // Helper function to get priority color based on time until activity
-  const getPriorityColor = (minutesUntil) => {
-    if (minutesUntil < 0) return { bg: '#FEF2F2', text: '#EF4444', border: '#FECACA' }; // Past - Red
-    if (minutesUntil <= 30) return { bg: '#EFF6FF', text: '#2563EB', border: '#DBEAFE' }; // Soon - Blue
-    if (minutesUntil <= 120) return { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' }; // Medium - Amber
-    return { bg: '#F0FDF4', text: '#16A34A', border: '#BBF7D0' }; // Later - Green
-  };
+  fetchPrediction(currentActivity);
+}, []);
+
 
   const renderDashboard = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
@@ -471,81 +347,22 @@ export default function SmartDogCollarApp() {
         </View>
       </Card>
 
-      {/* Enhanced Activity Predictions with Chain */}
+      {/* Activity */}
       <Card>
-        <View style={styles.predictionHeader}>
-          <Text style={styles.cardTitle}>Activity Chain Predictions</Text>
-          <Text style={styles.predictionSubtitle}>
-            Current time: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-          <Text style={styles.predictionDescription}>
-            Showing predicted activity sequence based on behavioral patterns
-          </Text>
-        </View>
-        
-        {isLoadingPredictions ? (
-          <View style={styles.loadingContainer}>
-            <Ionicons name="time-outline" size={24} color="#6B7280" />
-            <Text style={styles.loadingText}>Loading chain predictions...</Text>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
+        Activity Predictions
+      </Text>
+      {predictions.length > 0 ? (
+        predictions.map((pred, idx) => (
+          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ flex: 1, fontWeight: '600' }}>{pred.label}</Text>
+            <Badge text={`${pred.time} (${pred.timeInfo})`} />
           </View>
-        ) : predictions.length > 0 ? (
-          <View style={styles.chainContainer}>
-            {predictions.map((pred, idx) => {
-              const minutesUntil = calculateMinutesUntil(pred.predictedTime);
-              const timeString = pred.predictedTime.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              });
-              const colors = getPriorityColor(minutesUntil);
-
-              return (
-                <View key={pred.id} style={styles.chainItem}>
-                  <View style={styles.chainItemContent}>
-                    <View style={styles.chainLeft}>
-                      <View style={[styles.chainNumber, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                        <Text style={[styles.chainNumberText, { color: colors.text }]}>{idx + 1}</Text>
-                      </View>
-                      <Text style={styles.predictionEmoji}>{getBehaviorEmoji(pred.label)}</Text>
-                      <View style={styles.predictionInfo}>
-                        <Text style={styles.predictionActivity}>{pred.label}</Text>
-                        <Text style={styles.predictionTime}>Expected: {timeString}</Text>
-                        <Text style={styles.predictionDepth}>Chain depth: {pred.depth}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.predictionRight}>
-                      <Badge 
-                        text={formatTimeRemaining(minutesUntil)}
-                        style={[styles.timeBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}
-                        textStyle={{ color: colors.text }}
-                      />
-                      {pred.probability && (
-                        <Text style={styles.probabilityText}>
-                          {Math.round(pred.probability * 100)}% confident
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                  {/* Chain connector line */}
-                  {idx < predictions.length - 1 && (
-                    <View style={styles.chainConnector}>
-                      <View style={styles.chainLine} />
-                      <Ionicons name="arrow-down" size={12} color="#D1D5DB" />
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <View style={styles.noPredictionsContainer}>
-            <Ionicons name="help-circle-outline" size={32} color="#9CA3AF" />
-            <Text style={styles.noPredictionsText}>No predictions available</Text>
-            <Text style={styles.noPredictionsSubtext}>
-              Chain predictions will appear once activity patterns are established
-            </Text>
-          </View>
-        )}
-      </Card>
+        ))
+      ) : (
+        <Text>Loading predictions...</Text>
+      )}
+    </Card>
 
       <Card>
         <Text style={styles.cardTitle}>Behavior Patterns</Text>
@@ -1084,124 +901,20 @@ const styles = StyleSheet.create({
   currentEmotionBadge: {
     marginTop: 8,
   },
-  // Enhanced styles for chain predictions
-  predictionHeader: {
-    marginBottom: 16,
-  },
-  predictionSubtitle: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  predictionDescription: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginTop: 2,
-    fontStyle: 'italic',
-  },
-  chainContainer: {
-    marginTop: 8,
-  },
-  chainItem: {
-    marginBottom: 12,
-  },
-  chainItemContent: {
+  predictionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    marginBottom: 12,
   },
-  chainLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  chainNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    borderWidth: 1,
-  },
-  chainNumberText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  predictionEmoji: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-  predictionInfo: {
-    flex: 1,
-  },
-  predictionActivity: {
+  predictionLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
+    color: '#374151',
   },
-  predictionTime: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  predictionDepth: {
-    fontSize: 9,
-    color: '#9CA3AF',
-    marginTop: 1,
-  },
-  predictionRight: {
-    alignItems: 'flex-end',
-  },
-  timeBadge: {
-    marginBottom: 4,
+  predictionBadge: {
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-  },
-  probabilityText: {
-    fontSize: 9,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  chainConnector: {
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  chainLine: {
-    width: 1,
-    height: 8,
-    backgroundColor: '#D1D5DB',
-    marginBottom: 2,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
-  },
-  noPredictionsContainer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  noPredictionsText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  noPredictionsSubtext: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
-    textAlign: 'center',
-    paddingHorizontal: 20,
+    borderColor: '#D1D5DB',
   },
   patternItem: {
     flexDirection: 'row',
