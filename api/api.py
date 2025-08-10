@@ -14,9 +14,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sibling_dir = os.path.join(current_dir, '..', 'machine-learning')
 
 # Load model + encoders
-model = joblib.load(sibling_dir+'\model.joblib')
-label_encoders = joblib.load(sibling_dir+'\label_encoders.joblib')
-target_le = joblib.load(sibling_dir+'\\target_le.joblib')
+model = joblib.load(os.path.join(sibling_dir, 'model.joblib'))
+label_encoders = joblib.load(os.path.join(sibling_dir, 'label_encoders.joblib'))
+target_le = joblib.load(os.path.join(sibling_dir, 'target_le.joblib'))
 
 categorical_features = ['size', 'tail_position', 'tail_stiffness', 'wag_direction']
 
@@ -60,7 +60,7 @@ def get_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-    
+
 def predict_bark_translation(emotion, activity):
     dog_sentences = {
     ("Neutral", "Playing"): "I'm just playing like usual.",
@@ -70,7 +70,7 @@ def predict_bark_translation(emotion, activity):
     ("Hungry", "Playing"): "I want to play, but my tummy is rumbling.",
     ("Scared", "Playing"): "I don't want to play anymore, I'm scared.",
     ("Alert", "Playing"): "I'm playing but staying alert around here.",
-    
+
     ("Neutral", "Potty"): "Time to do my business.",
     ("Excited", "Potty"): "Potty time, yay!",
     ("Sad", "Potty"): "I don't feel good, maybe I need to potty.",
@@ -78,7 +78,7 @@ def predict_bark_translation(emotion, activity):
     ("Hungry", "Potty"): "I want food but I gotta potty first.",
     ("Scared", "Potty"): "Potty time but something's making me nervous.",
     ("Alert", "Potty"): "Potty but I'm watching out for anything strange.",
-    
+
     ("Neutral", "Medication"): "Taking my medicine like a good pup.",
     ("Excited", "Medication"): "Medicine time! Hopefully it tastes good!",
     ("Sad", "Medication"): "I don't like taking medicine.",
@@ -86,7 +86,7 @@ def predict_bark_translation(emotion, activity):
     ("Hungry", "Medication"): "I’m hungry but have to take this first.",
     ("Scared", "Medication"): "Medicine time scares me a bit.",
     ("Alert", "Medication"): "I'm alert while getting my medicine.",
-    
+
     ("Neutral", "Sleeping"): "Just going to take a nap.",
     ("Excited", "Sleeping"): "I’m excited for bedtime!",
     ("Sad", "Sleeping"): "I feel lonely, time to sleep.",
@@ -94,7 +94,7 @@ def predict_bark_translation(emotion, activity):
     ("Hungry", "Sleeping"): "I’m hungry but sleepy too.",
     ("Scared", "Sleeping"): "Sleeping but I’m still scared.",
     ("Alert", "Sleeping"): "I’m resting but staying alert.",
-    
+
     ("Neutral", "Feeding"): "Time to eat my food.",
     ("Excited", "Feeding"): "Yummy! Food time!",
     ("Sad", "Feeding"): "I don’t feel like eating.",
@@ -102,7 +102,7 @@ def predict_bark_translation(emotion, activity):
     ("Hungry", "Feeding"): "I’m starving, finally food!",
     ("Scared", "Feeding"): "Eating but a bit nervous.",
     ("Alert", "Feeding"): "Eating but I’m watching around.",
-    
+
     ("Neutral", "Exercising"): "Let’s get some exercise.",
     ("Excited", "Exercising"): "I love exercising!",
     ("Sad", "Exercising"): "I don’t feel like moving today.",
