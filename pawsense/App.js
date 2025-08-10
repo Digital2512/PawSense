@@ -30,9 +30,9 @@ const generateHealthData = () => ({
 const behaviors = ['Walking', 'Running', 'Sleeping', 'Playing', 'Eating', 'Sitting'];
 const emotions = ['Happy', 'Excited', 'Calm', 'Anxious', 'Playful', 'Tired'];
 const locations = [
-  { name: 'Home', lat: 40.7128, lng: -74.0060 },
-  { name: 'Dog Park', lat: 40.7589, lng: -73.9851 },
-  { name: 'Vet Clinic', lat: 40.7505, lng: -73.9934 }
+  { name: 'Home', lat: 40.7128, lng: -74.0060, mins: 11 },
+  { name: 'Dog Park', lat: 40.7589, lng: -73.9851, mins: 30 },
+  { name: 'Vet Clinic', lat: 40.7505, lng: -73.9934, mins: 54 }
 ];
 
 // Reusable Components
@@ -126,7 +126,7 @@ export default function SmartDogCollarApp() {
       'Playing': '🎾',
       'Walking': '🚶',
       'Running': '🏃',
-      'Eating': '🍽️',
+      'Feeding': '🍽️',
       'Sitting': '🐕'
     };
     return emojiMap[behavior] || '🐕';
@@ -358,7 +358,7 @@ export default function SmartDogCollarApp() {
               </View>
             </View>
             <Badge 
-              text={`${Math.floor(Math.random() * 30) + 5} min`}
+              text={`${location.mins} min`}
               style={styles.durationBadge}
             />
           </View>
@@ -372,8 +372,8 @@ export default function SmartDogCollarApp() {
       <Card>
         <Text style={styles.cardTitle}>Current Behavior</Text>
         <View style={styles.behaviorDisplay}>
-          <Text style={styles.behaviorEmoji}>{getBehaviorEmoji(currentBehavior)}</Text>
-          <Text style={styles.behaviorName}>{currentBehavior}</Text>
+          <Text style={styles.behaviorEmoji}>{getBehaviorEmoji(clientData.activity)}</Text>
+          <Text style={styles.behaviorName}>{clientData.activity}</Text>
           <Text style={styles.behaviorConfidence}>Confidence: 94%</Text>
           <Badge 
             text={currentEmotion}
