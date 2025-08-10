@@ -143,7 +143,7 @@ def retrieve_client_data():
     calories = {"Small":  (roundUniform(4,10) / 0.4) * steps[size]/12000 * 0.8, "Medium": (roundUniform(10,25) / 0.4) * steps[size]/6000 * 0.8, "Large": (roundUniform(25,44) / 0.4) * steps[size]/8000 * 0.8}
     return {
         "size": random.choice(possible_values[chosen_emotion]["size"]),
-        "age_group": age,
+        "age": age,
         "heart_rate": heart_rate,
         "tail_wag_speed": round(tail_wag_speed[chosen_emotion],2),
         "tail_wag_amplitude": tail_wag_amplitude[chosen_emotion],
