@@ -121,7 +121,7 @@ def retrieve_client_data():
         base_heart_rate += 15
     elif age > 7:
         base_heart_rate -= 5
-    heart_rate = base_heart_rate + random.randint(-15,15)
+    heart_rate = round(base_heart_rate + random.randint(-15,15), 2)
     tail_wag_speed = {"Angry": (random.randint(0,100) / 100.0) + random.randint(0,50)/100.0, "Excited": (random.randint(250,400) / 100.0) + random.randint(-100,150) / 100.0, "Hungry": (random.randint(100,200) / 100.0) + random.randint(-20,20) / 100, "Neutral": (random.randint(50,200) / 100.0) + random.randint(-15,15)/100.0, "Sad": (random.randint(0,100) / 100.0) + random.randint(0,15) /100, "Scared": (random.randint(0,100) / 100.0) + random.randint(0,50)/100.0, "Alert": (random.randint(0,150) / 100.0) + random.randint(0, 75)/100.0}
     tail_wag_amplitude = {"Angry": random.randint(0,30) + random.randint(0,10), "Excited": random.randint(60,90) + random.randint(-10,10), "Hungry": random.randint(30,60) + random.randint(-10,10), "Neutral": random.randint(30,60) + random.randint(-15,15), "Sad": random.randint(0,30) + random.randint(0,15), "Scared": random.randint(0,30) + random.randint(0,10), "Alert": random.randint(30,60) + random.randint(-10,10)}
     bark_pitch = 0 # default value
@@ -137,8 +137,10 @@ def retrieve_client_data():
             bark_pitch -= 20
     bark_pitch += random.randint(-15,15)
     steps = {"Small": random.randint(0, 12000) if age < 1 else random.randint(0, 10000) if age > 7 else random.randint(0, 15000), "Medium": random.randint(0, 15000) if age < 1 else random.randint(0, 12000) if age > 7 else random.randint(0, 18000), "Large": random.randint(0, 18000) if age < 1 else random.randint(0, 12000) if age > 7 else random.randint(0, 20000)}
-    latitude = random.uniform(-27.638686676839207, -27.35052525945719)
-    longitude = random.uniform(152.93032865374974, 153.11524474137644)
+    latitude = round(random.uniform(-27.638686676839207, -27.35052525945719), 2)
+    longitude = round(random.uniform(152.93032865374974, 153.11524474137644), 2)
+    temperature = roundUniform(38.3,39.2)
+    calories = {"Small":  (roundUniform(4,10) / 0.4) * steps[size]/12000 * 0.8, "Medium": (roundUniform(10,25) / 0.4) * steps[size]/6000 * 0.8, "Large": (roundUniform(25,44) / 0.4) * steps[size]/8000 * 0.8}
     return {
         "size": random.choice(possible_values[chosen_emotion]["size"]),
         "age": age,
@@ -156,5 +158,7 @@ def retrieve_client_data():
         "activity": random.choice(activity),
         "steps": steps[size],
         "latitude": latitude,
-        "longitude":longitude
+        "longitude":longitude,
+        "temperature": temperature,
+        "calories": round(calories[size],2)
     }
