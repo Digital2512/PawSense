@@ -111,7 +111,7 @@ def roundUniform(min, max):
 # Helper: generate random dataset
 def retrieve_client_data():
     emotions = ["Neutral", "Excited", "Sad", "Angry", "Hungry", "Scared", "Alert"]
-    activity = ["Play", "Potty", "Medication", "Sleep", "Feeding", "Exercise"]
+    activity = ["Playing", "Potty", "Medication", "Sleeping", "Feeding", "Exercising"]
     chosen_emotion = random.choice(emotions)
     size = random.choice(possible_values[chosen_emotion]["size"])
     age = random.choice(possible_values[chosen_emotion]["age_group"])
