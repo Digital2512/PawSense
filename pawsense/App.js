@@ -141,6 +141,15 @@ export default function SmartDogCollarApp() {
 
         const data = await response.json();
         setCurrentEmotion(data.predicted_emotion);
+        setRecentBarks(prevBarks => [
+          { 
+            time:"2 mins ago", 
+            translation: data.bark_translation, 
+            confidence: Math.floor(Math.random() * 100) + 1 
+          },
+          ...prevBarks.slice(0, 2) // Keep only the last 3 barks
+        ]);
+        
       } catch (error) {
         console.error('Error fetching emotion:', error);
       }
@@ -187,43 +196,6 @@ export default function SmartDogCollarApp() {
     }
 
     fetchPrediction();
-  }, []);
-
-  useEffect(() => {
-    async function fetchTranslations() {
-      try {
-        const response = await fetch('http://127.0.1:5000/predict_emotion', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        setRecentBarks(prev => [
-          ...prev,
-          {
-            time: '2 min ago',
-            translation: data.bark_translation,
-            confidence: Math.floor(Math.random() * 100) + 1 // Random confidence for demo
-          },
-          {
-            time: '5 min ago',
-            translation: data.bark_translation1,
-            confidence: 92
-          },
-          {
-            time: '12 min ago',
-            translation: data.bark_translation2,
-            confidence: 88
-          }
-        ]);
-      } catch (error) {
-        console.error('Error fetching translations:', error);
-      }
-    }
-    fetchTranslations();
   }, []);
 
   console.log('Predictions: ', predictions)

@@ -24,26 +24,15 @@ app = Flask(__name__)
 CORS(app)
 
 # Predicts the next day's activity
-@app.route('/predict', methods=["GET"])
-def predict():
-    listOfPredictions = predict_day()
-    return jsonify({
-        'predictionList': listOfPredictions
-    })
-
-# Returns data fromt he client as a JSON back to caller
-@app.route("/data", methods=["GET"])
-def get_data():
-    client_data = retrieve_client_data()
-    return jsonify(client_data)
-
 @app.route('/predict_emotion', methods=['GET'])
 def predict_emotion():
     try:
         data = retrieve_client_data()
         new_data = pd.DataFrame([data])
-        new_data = new_data.drop(columns=['context','activity','steps','latitude','longitude'], errors='ignore')
         print("Received data for prediction:", new_data)
+
+        activity = new_data['activity'].values[0]
+        new_data.drop(columns=['context', 'activity', 'steps', 'latitude', 'longitude'], inplace=True, errors='ignore')
 
         # Encode categorical features
         for col in categorical_features:
@@ -53,25 +42,12 @@ def predict_emotion():
         # Predict
         predicted_label_num = model.predict(new_data)[0]
         predicted_emotion = target_le.inverse_transform([predicted_label_num])[0]
+        translation = predict_bark_translation(predicted_emotion, activity)
+        print(f"Predicted emotion: {predicted_emotion}, Translation: {translation}")
 
         print(f"Predicted dog emotion: {predicted_emotion}")
-
-        translate_df = pd.read_csv(os.path.join(current_dir, '\\translate.csv'))
-        bark_translation1 = translate_df.values[0]
-        bark_translation2 = translate_df.values[1]
-        bark_translation = predict_bark_translation(predicted_emotion, new_data['activity'].values[0])
-
-        translate_df = pd.DataFrame({
-            'bark_translation1': [bark_translation],
-            'bark_translation2': [bark_translation1],
-            'bark_translation3': [bark_translation2]
-        })
-        translate_df.to_csv(os.path.join(current_dir, '\\translate.csv'), index=False)
-
         return jsonify({"predicted_emotion": predicted_emotion,
-                        "bark_translation1": bark_translation,
-                        "bark_translation2": bark_translation1,
-                        "bark_translation3": bark_translation2})
+                        "bark_translation": translation})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
