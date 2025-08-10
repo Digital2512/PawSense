@@ -1,8 +1,4 @@
-// styles.js
 import { StyleSheet, Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
-
 
 const styles = StyleSheet.create({
   container: {
@@ -497,7 +493,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    minWidth: (width - 64) / 2 - 4,
+    minWidth: (Dimensions.get('window').width - 64) / 2 - 4,
     alignItems: 'center',
   },
   commandButtonText: {

@@ -1,22 +1,21 @@
-// App.js
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
   SafeAreaView,
   StatusBar,
-  Dimensions,
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import styles from './AppStyles';
 
-const { width } = Dimensions.get('window');
+import styles from './AppStyles.js';
+import { TabButton } from './components/components.jsx';
+import Dashboard from "./components/Dashboard.jsx";
+import Health from "./components/Health.jsx";
+import Location from "./components/Location.jsx";
+import Behavior from "./components/Behavior.jsx";
+import Translator from "./components/Translator.jsx";
 
 // Mock data generators
 const generateHealthData = () => ({
@@ -34,44 +33,6 @@ const locations = [
   { name: 'Dog Park', lat: 40.7589, lng: -73.9851 },
   { name: 'Vet Clinic', lat: 40.7505, lng: -73.9934 }
 ];
-
-// Reusable Components
-const Card = ({ children, style }) => (
-  <View style={[styles.card, style]}>
-    {children}
-  </View>
-);
-
-const Badge = ({ text, style, textStyle }) => (
-  <View style={[styles.badge, style]}>
-    <Text style={[styles.badgeText, textStyle]}>{text}</Text>
-  </View>
-);
-
-const ProgressBar = ({ progress, color = '#3B82F6', height = 8 }) => (
-  <View style={[styles.progressContainer, { height }]}>
-    <View 
-      style={[
-        styles.progressBar, 
-        { width: `${progress}%`, backgroundColor: color, height }
-      ]} 
-    />
-  </View>
-);
-
-const TabButton = ({ icon, isActive, onPress, label }) => (
-  <TouchableOpacity 
-    style={[styles.tabButton, isActive && styles.tabButtonActive]} 
-    onPress={onPress}
-  >
-    <Ionicons 
-      name={icon} 
-      size={20} 
-      color={isActive ? '#FFFFFF' : '#6B7280'} 
-    />
-    {label && <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{label}</Text>}
-  </TouchableOpacity>
-);
 
 export default function SmartDogCollarApp() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -103,14 +64,14 @@ export default function SmartDogCollarApp() {
     return () => clearInterval(interval);
   }, []);
 
-  // 
+  //
 
   const handleTranslate = () => {
     if (!translatorInput.trim()) {
       Alert.alert('Please enter a message');
       return;
     }
-    
+
     const responses = [
       'Woof woof! (Time for a walk!)',
       'Bark bark woof! (I love you too!)',
@@ -132,7 +93,7 @@ export default function SmartDogCollarApp() {
     return emojiMap[behavior] || '🐕';
   };
 
-  
+
   useEffect(() => {
     async function fetchPrediction() {
       try {
@@ -170,7 +131,7 @@ export default function SmartDogCollarApp() {
         console.error('Error fetching prediction:', error);
       }
     }
-    
+
     fetchPrediction();
   }, []);
 
@@ -193,326 +154,17 @@ export default function SmartDogCollarApp() {
         console.error('Error fetching client data:', error);
       }
     }
-    
+
     fetchClientData();
   }, []);
 
   // console.log('Predictions: ', predictions)
   // console.log('Predictions: ', clientData)
 
-  const renderDashboard = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <Card style={styles.statusCard}>
-        <Text style={styles.cardTitle}>Current Status</Text>
-        <View style={styles.statusGrid}>
-          <View style={[styles.statusItem, { backgroundColor: '#EFF6FF' }]}>
-            <Text style={[styles.statusValue, { color: '#2563EB' }]}>{clientData.heart_rate}</Text>
-            <Text style={[styles.statusLabel, { color: '#2563EB' }]}>BPM</Text>
-          </View>
-          <View style={[styles.statusItem, { backgroundColor: '#F0FDF4' }]}>
-            <Text style={[styles.statusValue, { color: '#16A34A' }]}>{clientData.temperature}°F</Text>
-            <Text style={[styles.statusLabel, { color: '#16A34A' }]}>Temperature</Text>
-          </View>
-        </View>
-        <View style={styles.activityContainer}>
-          <Text style={styles.activityLabel}>Activity Level</Text>
-          <Badge text={`${healthData.activity}%`} style={styles.activityBadge} />
-        </View>
-        <ProgressBar progress={healthData.activity} color="#3B82F6" />
-      </Card>
-
-      <Card style={styles.behaviorCard}>
-        <Text style={styles.cardTitle}>Behavior & Emotion</Text>
-        <View style={styles.behaviorContent}>
-          <View style={styles.behaviorInfo}>
-            <Text style={styles.behaviorText}>{clientData.activity}</Text>
-            <Text style={styles.behaviorSubtext}>Current Activity</Text>
-          </View>
-          <Badge 
-            text={currentEmotion} 
-            style={[styles.emotionBadge, { backgroundColor: '#F3E8FF' }]}
-            textStyle={{ color: '#7C3AED' }}
-          />
-        </View>
-        <Text style={styles.timestamp}>
-          Last updated: {new Date().toLocaleTimeString()}
-        </Text>
-      </Card>
-
-      <Card style={styles.locationCard}>
-        <Text style={styles.cardTitle}>Location</Text>
-        <View style={styles.locationContent}>
-          <View style={styles.locationInfo}>
-            <Text style={styles.locationName}>{clientData.context}</Text>
-            <Text style={styles.locationCoords}>
-              {clientData.latitude}, {clientData.longitude}
-            </Text>
-          </View>
-          <Badge 
-            text="Safe Zone" 
-            style={[styles.safeBadge, { backgroundColor: '#DCFCE7', borderColor: '#16A34A' }]}
-            textStyle={{ color: '#16A34A' }}
-          />
-        </View>
-      </Card>
-    </ScrollView>
-  );
-
-  const renderHealth = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <Card>
-        <Text style={styles.cardTitle}>Vital Signs</Text>
-        <View style={styles.vitalSignsGrid}>
-          <View style={[styles.vitalSignCard, { backgroundColor: '#FEF2F2' }]}>
-            <View style={styles.vitalSignHeader}>
-              <Ionicons name="heart" size={16} color="#EF4444" />
-              <Text style={styles.vitalSignLabel}>Heart Rate</Text>
-            </View>
-            <Text style={[styles.vitalSignValue, { color: '#EF4444' }]}>{clientData.heart_rate}</Text>
-            <Text style={[styles.vitalSignUnit, { color: '#EF4444' }]}>BPM (Normal)</Text>
-          </View>
-          <View style={[styles.vitalSignCard, { backgroundColor: '#FFF7ED' }]}>
-            <View style={styles.vitalSignHeader}>
-              <Ionicons name="thermometer" size={16} color="#F97316" />
-              <Text style={styles.vitalSignLabel}>Temperature</Text>
-            </View>
-            <Text style={[styles.vitalSignValue, { color: '#F97316' }]}>{clientData.temperature}°F</Text>
-            <Text style={[styles.vitalSignUnit, { color: '#F97316' }]}>Normal Range</Text>
-          </View>
-        </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Daily Activity</Text>
-        <View style={styles.activityMetric}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricLabel}>Steps Today</Text>
-            <Text style={styles.metricValue}>{clientData.steps}</Text>
-          </View>
-          <ProgressBar progress={(clientData.steps / 15000) * 100} color="#10B981" />
-          <Text style={styles.metricGoal}>Goal: 15,000 steps</Text>
-        </View>
-        <View style={styles.activityMetric}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricLabel}>Calories Burned</Text>
-            <Text style={styles.metricValue}>{clientData.calories}</Text>
-          </View>
-          <ProgressBar progress={(clientData.calories / 600) * 100} color="#F59E0B" />
-          <Text style={styles.metricGoal}>Goal: 600 calories</Text>
-        </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Health Alerts</Text>
-        <View style={styles.healthAlert}>
-          <Text style={[styles.healthAlertTitle, { color: 'red', fontWeight: 'bold' }]}>
-            ⚠️ Health Alert!
-          </Text>
-          <Text style={styles.healthAlertText}>
-            Max has missed his medicine dose today.
-          </Text>
-        </View>
-      </Card>
-    </ScrollView>
-  );
-
-  const renderLocation = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <Card>
-        <Text style={styles.cardTitle}>Live Location</Text>
-        <View style={styles.mapPlaceholder}>
-          <Ionicons name="location" size={48} color="#EF4444" />
-          <Text style={styles.mapLocationName}>{clientData.context}</Text>
-          <Text style={styles.mapLocationCoords}>
-            {clientData.latitude}, {clientData.longitude}
-          </Text>
-          <Badge 
-            text="In Safe Zone" 
-            style={[styles.mapBadge, { backgroundColor: '#DCFCE7' }]}
-            textStyle={{ color: '#16A34A' }}
-          />
-        </View>
-        <View style={styles.locationDetails}>
-          <View style={styles.locationDetailRow}>
-            <Text style={styles.locationDetailLabel}>Distance from Home</Text>
-            <Text style={styles.locationDetailValue}>0.3 miles</Text>
-          </View>
-          <View style={styles.locationDetailRow}>
-            <Text style={styles.locationDetailLabel}>Last Movement</Text>
-            <Text style={styles.locationDetailValue}>2 minutes ago</Text>
-          </View>
-        </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Recent Locations</Text>
-        {locations.map((location, index) => (
-          <View key={index} style={styles.locationHistoryItem}>
-            <View style={styles.locationHistoryInfo}>
-              <Ionicons name="location-outline" size={16} color="#6B7280" />
-              <View style={styles.locationHistoryText}>
-                <Text style={styles.locationHistoryName}>{location.name}</Text>
-                <Text style={styles.locationHistoryTime}>
-                  {Math.floor(Math.random() * 60)} min ago
-                </Text>
-              </View>
-            </View>
-            <Badge 
-              text={`${Math.floor(Math.random() * 30) + 5} min`}
-              style={styles.durationBadge}
-            />
-          </View>
-        ))}
-      </Card>
-    </ScrollView>
-  );
-
-  const renderBehavior = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <Card>
-        <Text style={styles.cardTitle}>Current Behavior</Text>
-        <View style={styles.behaviorDisplay}>
-          <Text style={styles.behaviorEmoji}>{getBehaviorEmoji(currentBehavior)}</Text>
-          <Text style={styles.behaviorName}>{currentBehavior}</Text>
-          <Text style={styles.behaviorConfidence}>Confidence: 94%</Text>
-          <Badge 
-            text={currentEmotion}
-            style={[styles.currentEmotionBadge, { backgroundColor: '#F3E8FF' }]}
-            textStyle={{ color: '#7C3AED' }}
-          />
-        </View>
-      </Card>
-
-      <Card>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
-          Activity Predictions
-        </Text>
-        {predictions.length > 0 ? (
-          [...predictions]  // create a shallow copy to avoid mutating state directly
-            .sort((a, b) => {
-              // extract minutes from timeInfo like "in 123 minutes"
-              const aMinutes = parseInt(a.timeInfo.match(/in (\d+) minutes/)[1], 10);
-              const bMinutes = parseInt(b.timeInfo.match(/in (\d+) minutes/)[1], 10);
-              return aMinutes - bMinutes;
-            })
-            .map((pred, idx) => {
-              const [hour, minute] = pred.time.split(':');
-
-              const minutesMatch = pred.timeInfo.match(/in (\d+) minutes/);
-              let timeInfoFormatted = pred.timeInfo;
-              if (minutesMatch) {
-                const totalMinutes = parseInt(minutesMatch[1], 10);
-                if (totalMinutes >= 60) {
-                  const hrs = Math.floor(totalMinutes / 60);
-                  const mins = totalMinutes % 60;
-                  timeInfoFormatted = `in ${hrs} hour${hrs > 1 ? 's' : ''} ${mins} minute${mins !== 1 ? 's' : ''}`;
-                }
-              }
-
-              return (
-                <View
-                  key={idx}
-                  style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
-                >
-                  <Text style={{ flex: 1, fontWeight: '600' }}>{pred.label}</Text>
-                  <Badge text={`${hour}:${minute} (${timeInfoFormatted})`} />
-                </View>
-              );
-            })
-        ) : (
-          <Text>Loading predictions...</Text>
-        )}
-      </Card>
-    </ScrollView>
-  );
-
-  const renderTranslator = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <Card>
-        <Text style={styles.cardTitle}>Two-Way Translator</Text>
-        <View style={styles.translatorInput}>
-          <Text style={styles.inputLabel}>Speak to Max:</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              value={translatorInput}
-              onChangeText={setTranslatorInput}
-              placeholder="Type your message..."
-              placeholderTextColor="#9CA3AF"
-            />
-            <TouchableOpacity 
-              style={styles.sendButton}
-              onPress={handleTranslate}
-            >
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        {translatorOutput && (
-          <View style={styles.translatorResponse}>
-            <Text style={styles.responseLabel}>Max's Response:</Text>
-            <Text style={styles.responseText}>{translatorOutput}</Text>
-          </View>
-        )}
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Recent Bark Translations</Text>
-        {recentBarks.map((bark, index) => (
-          <View key={index} style={styles.barkTranslation}>
-            <View style={styles.barkHeader}>
-              <Text style={styles.barkText}>{bark.translation}</Text>
-              <Badge 
-                text={`${bark.confidence}%`}
-                style={styles.confidenceBadge}
-              />
-            </View>
-            <Text style={styles.barkTime}>{bark.time}</Text>
-          </View>
-        ))}
-      </Card>
-
-      <Card>
-        <Text style={styles.cardTitle}>Quick Commands</Text>
-        <View style={styles.quickCommands}>
-          {['Sit', 'Stay', 'Come', 'Good Boy'].map((command) => (
-            <TouchableOpacity
-              key={command}
-              style={styles.commandButton}
-              onPress={() => {
-                setTranslatorInput(command);
-                handleTranslate();
-              }}
-            >
-              <Text style={styles.commandButtonText}>{command}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </Card>
-    </ScrollView>
-  );
-
-  const renderTabContent = () => {
-    switch (currentTab) {
-      case 'dashboard':
-        return renderDashboard();
-      case 'health':
-        return renderHealth();
-      case 'location':
-        return renderLocation();
-      case 'behavior':
-        return renderBehavior();
-      case 'translator':
-        return renderTranslator();
-      default:
-        return renderDashboard();
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-      
+
       {/* Header */}
       <LinearGradient
         colors={['#3B82F6', '#8B5CF6']}
@@ -532,10 +184,10 @@ export default function SmartDogCollarApp() {
           </View>
           <View style={styles.headerRight}>
             <View style={styles.statusIndicators}>
-              <Ionicons 
-                name={isConnected ? "wifi" : "wifi-outline"} 
-                size={16} 
-                color={isConnected ? "#10B981" : "#EF4444"} 
+              <Ionicons
+                name={isConnected ? "wifi" : "wifi-outline"}
+                size={16}
+                color={isConnected ? "#10B981" : "#EF4444"}
               />
               <Ionicons name="battery-half" size={16} color="#FFFFFF" />
               <Text style={styles.batteryText}>{Math.floor(batteryLevel)}%</Text>
@@ -546,35 +198,50 @@ export default function SmartDogCollarApp() {
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        <TabButton 
-          icon="grid-outline" 
+        <TabButton
+          icon="grid-outline"
           isActive={currentTab === 'dashboard'}
           onPress={() => setCurrentTab('dashboard')}
         />
-        <TabButton 
-          icon="heart-outline" 
+        <TabButton
+          icon="heart-outline"
           isActive={currentTab === 'health'}
           onPress={() => setCurrentTab('health')}
         />
-        <TabButton 
-          icon="location-outline" 
+        <TabButton
+          icon="location-outline"
           isActive={currentTab === 'location'}
           onPress={() => setCurrentTab('location')}
         />
-        <TabButton 
-          icon="body-outline" 
+        <TabButton
+          icon="body-outline"
           isActive={currentTab === 'behavior'}
           onPress={() => setCurrentTab('behavior')}
         />
-        <TabButton 
-          icon="chatbubble-outline" 
+        <TabButton
+          icon="chatbubble-outline"
           isActive={currentTab === 'translator'}
           onPress={() => setCurrentTab('translator')}
         />
       </View>
 
-      {/* Tab Content */}
-      {renderTabContent()}
+      {(() => {
+        const DashboardBound = Dashboard.bind(this, healthData, clientData, currentEmotion)
+        switch (currentTab) {
+          case 'dashboard':
+            return DashboardBound();
+          case 'health':
+            return Health(clientData);
+          case 'location':
+            return Location(clientData, locations);
+          case 'behavior':
+            return Behavior(getBehaviorEmoji, currentBehavior, currentEmotion, predictions);
+          case 'translator':
+            return Translator(translatorInput, setTranslatorInput, handleTranslate, translatorOutput, recentBarks);
+          default:
+            return DashboardBound();
+        }
+      })()}
     </SafeAreaView>
   );
 }
