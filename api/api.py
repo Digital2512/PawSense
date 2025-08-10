@@ -23,16 +23,24 @@ categorical_features = ['size', 'tail_position', 'tail_stiffness', 'wag_directio
 app = Flask(__name__)
 CORS(app)
 
-# Predicts the next day's activity
-@app.route('/predict_emotion', methods=['GET'])
-def predict_emotion():
+@app.route('/predict', methods=["GET"])
+def predict():
+    listOfPredictions = predict_day()
+    return jsonify({
+        'predictionList': listOfPredictions
+    })
+
+# Predicts the current dog emotion based on client data
+@app.route('/data', methods=['GET'])
+def get_data():
     try:
         data = retrieve_client_data()
         new_data = pd.DataFrame([data])
-        print("Received data for prediction:", new_data)
+        print("Received data for emotion prediction:", new_data)
 
         activity = new_data['activity'].values[0]
-        new_data.drop(columns=['context', 'activity', 'steps', 'latitude', 'longitude'], inplace=True, errors='ignore')
+        print(f"Activity: {activity}")
+        new_data.drop(columns=['context', 'activity', 'steps', 'latitude', 'longitude', 'temperature', 'calories'], inplace=True, errors='ignore')
 
         # Encode categorical features
         for col in categorical_features:
@@ -46,7 +54,8 @@ def predict_emotion():
         print(f"Predicted emotion: {predicted_emotion}, Translation: {translation}")
 
         print(f"Predicted dog emotion: {predicted_emotion}")
-        return jsonify({"predicted_emotion": predicted_emotion,
+        return jsonify({"clientData":data,
+                        "predicted_emotion": predicted_emotion,
                         "bark_translation": translation})
 
     except Exception as e:
@@ -54,13 +63,13 @@ def predict_emotion():
     
 def predict_bark_translation(emotion, activity):
     dog_sentences = {
-    ("Neutral", "Play"): "I'm just playing like usual.",
-    ("Excited", "Play"): "Yay! Playing is the best!",
-    ("Sad", "Play"): "I don't feel like playing right now.",
-    ("Angry", "Play"): "Stop bothering me while I play!",
-    ("Hungry", "Play"): "I want to play, but my tummy is rumbling.",
-    ("Scared", "Play"): "I don't want to play anymore, I'm scared.",
-    ("Alert", "Play"): "I'm playing but staying alert around here.",
+    ("Neutral", "Playing"): "I'm just playing like usual.",
+    ("Excited", "Playing"): "Yay! Playing is the best!",
+    ("Sad", "Playing"): "I don't feel like playing right now.",
+    ("Angry", "Playing"): "Stop bothering me while I play!",
+    ("Hungry", "Playing"): "I want to play, but my tummy is rumbling.",
+    ("Scared", "Playing"): "I don't want to play anymore, I'm scared.",
+    ("Alert", "Playing"): "I'm playing but staying alert around here.",
     
     ("Neutral", "Potty"): "Time to do my business.",
     ("Excited", "Potty"): "Potty time, yay!",
@@ -78,13 +87,13 @@ def predict_bark_translation(emotion, activity):
     ("Scared", "Medication"): "Medicine time scares me a bit.",
     ("Alert", "Medication"): "I'm alert while getting my medicine.",
     
-    ("Neutral", "Sleep"): "Just going to take a nap.",
-    ("Excited", "Sleep"): "I’m excited for bedtime!",
-    ("Sad", "Sleep"): "I feel lonely, time to sleep.",
-    ("Angry", "Sleep"): "I don't want to sleep now!",
-    ("Hungry", "Sleep"): "I’m hungry but sleepy too.",
-    ("Scared", "Sleep"): "Sleeping but I’m still scared.",
-    ("Alert", "Sleep"): "I’m resting but staying alert.",
+    ("Neutral", "Sleeping"): "Just going to take a nap.",
+    ("Excited", "Sleeping"): "I’m excited for bedtime!",
+    ("Sad", "Sleeping"): "I feel lonely, time to sleep.",
+    ("Angry", "Sleeping"): "I don't want to sleep now!",
+    ("Hungry", "Sleeping"): "I’m hungry but sleepy too.",
+    ("Scared", "Sleeping"): "Sleeping but I’m still scared.",
+    ("Alert", "Sleeping"): "I’m resting but staying alert.",
     
     ("Neutral", "Feeding"): "Time to eat my food.",
     ("Excited", "Feeding"): "Yummy! Food time!",
@@ -94,21 +103,13 @@ def predict_bark_translation(emotion, activity):
     ("Scared", "Feeding"): "Eating but a bit nervous.",
     ("Alert", "Feeding"): "Eating but I’m watching around.",
     
-    ("Neutral", "Exercise"): "Let’s get some exercise.",
-    ("Excited", "Exercise"): "I love exercising!",
-    ("Sad", "Exercise"): "I don’t feel like moving today.",
-    ("Angry", "Exercise"): "Exercise again? Not happy about this!",
-    ("Hungry", "Exercise"): "I want food but I have to exercise.",
-    ("Scared", "Exercise"): "Exercise but I’m scared of the noises.",
-    ("Alert", "Exercise"): "Exercising and staying alert.",
-    
-    ("Neutral", "Relax"): "Time to relax.",
-    ("Excited", "Relax"): "Relaxing feels great!",
-    ("Sad", "Relax"): "I’m feeling down, just relaxing.",
-    ("Angry", "Relax"): "I don’t want to relax, I’m annoyed!",
-    ("Hungry", "Relax"): "I want food, not relaxing.",
-    ("Scared", "Relax"): "Relaxing but still a bit scared.",
-    ("Alert", "Relax"): "Relaxing but keeping an eye out.",
+    ("Neutral", "Exercising"): "Let’s get some exercise.",
+    ("Excited", "Exercising"): "I love exercising!",
+    ("Sad", "Exercising"): "I don’t feel like moving today.",
+    ("Angry", "Exercising"): "Exercise again? Not happy about this!",
+    ("Hungry", "Exercising"): "I want food but I have to exercise.",
+    ("Scared", "Exercising"): "Exercising but I’m scared of the noises.",
+    ("Alert", "Exercising"): "Exercising and staying alert.",
 }
     return dog_sentences.get((emotion, activity), "I don't know what to say.")
 

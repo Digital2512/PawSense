@@ -84,9 +84,9 @@ export default function SmartDogCollarApp() {
   const [translatorInput, setTranslatorInput] = useState('');
   const [translatorOutput, setTranslatorOutput] = useState('');
   const [recentBarks, setRecentBarks] = useState([
-    { time: '2 min ago', translation: 'I want to go outside!', confidence: 92 },
-    { time: '5 min ago', translation: 'Someone is at the door', confidence: 88 },
-    { time: '12 min ago', translation: 'I am happy to see you!', confidence: 95 }
+    { time: '5 min ago', translation: 'I want to go outside!', confidence: 92 },
+    { time: '12 min ago', translation: 'Someone is at the door', confidence: 88 },
+    { time: '15 min ago', translation: 'I am happy to see you!', confidence: 95 }
   ]);
   const [predictions, setPredictions] = useState([]);
   const [clientData, setClientData] = useState([]);
@@ -134,7 +134,7 @@ export default function SmartDogCollarApp() {
   useEffect(() => {
     async function fetchEmotion() {
       try {
-        const response = await fetch('http://127.0.1:5000//predict_emotion', {
+        const response = await fetch('http://127.0.1:5000//data', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -144,6 +144,7 @@ export default function SmartDogCollarApp() {
 
         const data = await response.json();
         setCurrentEmotion(data.predicted_emotion);
+        setClientData(data.clientData);
         setRecentBarks(prevBarks => [
           { 
             time:"2 mins ago", 
@@ -201,28 +202,7 @@ export default function SmartDogCollarApp() {
     fetchPrediction();
   }, []);
 
-  useEffect(() => {
-    async function fetchClientData() {
-      try {
-        const response = await fetch('http://127.0.0.1:5000/data', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-
-        setClientData(data);
-      } catch (error) {
-        console.error('Error fetching client data:', error);
-      }
-    }
-    
-    fetchClientData();
-  }, []);
+  
 
   // console.log('Predictions: ', predictions)
   // console.log('Predictions: ', clientData)
