@@ -144,7 +144,7 @@ def retrieve_client_data():
     return {
         "size": random.choice(possible_values[chosen_emotion]["size"]),
         "age": age,
-        "heart_rate": heart_rate,
+        "heart_rate": round(heart_rate,0),
         "tail_wag_speed": round(tail_wag_speed[chosen_emotion],2),
         "tail_wag_amplitude": tail_wag_amplitude[chosen_emotion],
         "tail_position": random.choice(possible_values[chosen_emotion]["tail_position"]),

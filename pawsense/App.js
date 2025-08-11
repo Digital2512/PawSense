@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 const generateHealthData = () => ({
   heartRate: Math.floor(Math.random() * 40) + 80, // 80-120 BPM for dogs
   temperature: (Math.random() * 2 + 101).toFixed(1), // 101-103°F normal for dogs
-  activity: Math.floor(Math.random() * 100),
+  activity: 82,
   steps: Math.floor(Math.random() * 5000) + 8000,
   calories: Math.floor(Math.random() * 200) + 300
 });
@@ -217,7 +217,7 @@ export default function SmartDogCollarApp() {
             <Text style={[styles.statusLabel, { color: '#2563EB' }]}>BPM</Text>
           </View>
           <View style={[styles.statusItem, { backgroundColor: '#F0FDF4' }]}>
-            <Text style={[styles.statusValue, { color: '#16A34A' }]}>{clientData.temperature}°F</Text>
+            <Text style={[styles.statusValue, { color: '#16A34A' }]}>{clientData.temperature}°C</Text>
             <Text style={[styles.statusLabel, { color: '#16A34A' }]}>Temperature</Text>
           </View>
         </View>
@@ -250,7 +250,7 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Location</Text>
         <View style={styles.locationContent}>
           <View style={styles.locationInfo}>
-            <Text style={styles.locationName}>{clientData.context}</Text>
+            <Text style={styles.locationName}>Home</Text>
             <Text style={styles.locationCoords}>
               {clientData.latitude}, {clientData.longitude}
             </Text>
@@ -283,7 +283,7 @@ export default function SmartDogCollarApp() {
               <Ionicons name="thermometer" size={16} color="#F97316" />
               <Text style={styles.vitalSignLabel}>Temperature</Text>
             </View>
-            <Text style={[styles.vitalSignValue, { color: '#F97316' }]}>{clientData.temperature}°F</Text>
+            <Text style={[styles.vitalSignValue, { color: '#F97316' }]}>{clientData.temperature}°C</Text>
             <Text style={[styles.vitalSignUnit, { color: '#F97316' }]}>Normal Range</Text>
           </View>
         </View>
@@ -312,12 +312,8 @@ export default function SmartDogCollarApp() {
       <Card>
         <Text style={styles.cardTitle}>Health Alerts</Text>
         <View style={styles.healthAlert}>
-          <Text style={[styles.healthAlertTitle, { color: 'red', fontWeight: 'bold' }]}>
-            ⚠️ Health Alert!
-          </Text>
-          <Text style={styles.healthAlertText}>
-            Max has missed his medicine dose today.
-          </Text>
+          <Text style={styles.healthAlertTitle}>All Good! 🎉</Text>
+          <Text style={styles.healthAlertText}>No health alerts at this time</Text>
         </View>
       </Card>
     </ScrollView>
@@ -329,7 +325,7 @@ export default function SmartDogCollarApp() {
         <Text style={styles.cardTitle}>Live Location</Text>
         <View style={styles.mapPlaceholder}>
           <Ionicons name="location" size={48} color="#EF4444" />
-          <Text style={styles.mapLocationName}>{clientData.context}</Text>
+          <Text style={styles.mapLocationName}>Home</Text>
           <Text style={styles.mapLocationCoords}>
             {clientData.latitude}, {clientData.longitude}
           </Text>
